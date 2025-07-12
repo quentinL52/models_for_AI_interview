@@ -8,13 +8,13 @@ class MultiModelInterviewAnalyzer:
             "text-classification",
             model="astrosbd/french_emotion_camembert",
             return_all_scores=True,
-            device=0 if torch.cuda.is_available() else -1
+            device=0 if torch.cuda.is_available() else -1,
         )
         self.similarity_model = SentenceTransformer('all-MiniLM-L6-v2')
         self.intent_classifier = pipeline(
             "zero-shot-classification",
-            model="joeddav/xlm-roberta-large-xnli",
-            device=0 if torch.cuda.is_available() else -1
+            model="joeddav/xlm-roberta-large-xnli"
+            #device=0 if torch.cuda.is_available() else -1,
         )
 
     def analyze_sentiment(self, messages):

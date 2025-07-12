@@ -13,6 +13,7 @@ sentence_transformers
 torch
 transformers
 sentencepiece
+accelerate
 
 pypdf==4.3.1
 python-dotenv==1.0.1

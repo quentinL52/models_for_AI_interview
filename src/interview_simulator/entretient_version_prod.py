@@ -19,7 +19,7 @@ class State(TypedDict):
     messages: Annotated[list, add_messages]
 
 class InterviewProcessor:
-    def __init__(self, cv_document: Dict[str, Any], job_offer: Dict[str, Any]):
+    def __init__(self, cv_document: Dict[str, Any], job_offer: Dict[str, Any], conversation_history: List[Dict[str, Any]]):
         if not cv_document or 'candidat' not in cv_document:
             raise ValueError("Document CV invalide fourni.")
         if not job_offer:
@@ -27,6 +27,7 @@ class InterviewProcessor:
 
         self.job_offer = job_offer
         self.cv_data = cv_document['candidat']
+        self.conversation_history = conversation_history
         self.tools = [interview_analyser]
         self.llm = self._get_llm()
         self.llm_with_tools = self.llm.bind_tools(self.tools)
@@ -85,4 +86,5 @@ class InterviewProcessor:
         return graph_builder.compile()
 
     def run(self, messages: List[Dict[str, Any]]) -> Dict[str, Any]:
-        return self.graph.invoke({"messages": messages})
+        initial_state = self.conversation_history + messages
+        return self.graph.invoke({"messages": initial_state})

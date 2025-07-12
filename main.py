@@ -21,6 +21,7 @@ class InterviewRequest(BaseModel):
     cv_document: Dict[str, Any] = Field(..., example={"candidat": {"nom": "John Doe", "compétences": {"hard_skills": ["Python", "FastAPI"]}}})
     job_offer: Dict[str, Any] = Field(..., example={"poste": "Développeur Python", "description": "Recherche développeur expérimenté..."})
     messages: List[Dict[str, Any]]
+    conversation_history: List[Dict[str, Any]]
 
 class HealthCheck(BaseModel):
     status: str = Field(default="ok", example="ok")
@@ -68,7 +69,8 @@ async def simulate_interview_endpoint(request: InterviewRequest):
         logger.info("Création de l'instance InterviewProcessor.")
         processor = InterviewProcessor(
             cv_document=request.cv_document,
-            job_offer=request.job_offer
+            job_offer=request.job_offer,
+            conversation_history=request.conversation_history
         )
         logger.info("Lancement de la simulation dans un threadpool.")
         ai_response_object = await run_in_threadpool(processor.run, messages=request.messages)
