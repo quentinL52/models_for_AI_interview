@@ -29,7 +29,8 @@ class MultiModelInterviewAnalyzer:
         embedding_answers = self.similarity_model.encode(user_answers, convert_to_tensor=True)
         embedding_requirements = self.similarity_model.encode(job_requirements, convert_to_tensor=True)
         cosine_score = util.cos_sim(embedding_answers, embedding_requirements)
-        return cosine_score.item()
+        
+        return cosine_score.max().item()
 
     def classify_candidate_intent(self, messages):
         user_answers = [msg['content'] for msg in messages if msg['role'] == 'user']

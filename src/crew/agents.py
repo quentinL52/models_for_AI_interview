@@ -65,3 +65,11 @@ ProfileBuilderAgent = Agent(
     verbose=True,
     llm=LLM_agent
 )
+
+reconversion_detector_agent = Agent(
+    role="Détecteur de Reconversion Professionnelle",
+    goal="Analyser la chronologie des expériences pour identifier les changements de carrière significatifs.",
+    backstory="Vous êtes un conseiller d'orientation expert, capable de repérer les transitions de carrière, d'identifier les compétences transférables et de valoriser les parcours non linéaires. Votre analyse doit mettre en lumière les changements de secteur, de type de poste ou de niveau de responsabilité.",
+    verbose=False,
+    llm=LLM_agent
+)

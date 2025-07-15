@@ -6,6 +6,7 @@ langchain-core==0.2.26
 langchain-community==0.2.5
 langchain-openai==0.1.20
 langchain_groq
+langchain-huggingface
 langgraph==0.1.9
 crewai
 crewai-tools
@@ -14,9 +15,11 @@ torch
 transformers
 sentencepiece
 accelerate
-
+celery
+redis
 pypdf==4.3.1
 python-dotenv==1.0.1
 pymongo
 
 requests==2.32.3
+faiss-cpu==1.8.0

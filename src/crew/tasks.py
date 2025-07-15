@@ -1,22 +1,24 @@
 from crewai import Task
-from .agents import report_generator_agent, skills_extractor_agent, experience_extractor_agent, project_extractor_agent, education_extractor_agent, ProfileBuilderAgent, informations_personnelle_agent
+from .agents import report_generator_agent, skills_extractor_agent, experience_extractor_agent, project_extractor_agent, education_extractor_agent, ProfileBuilderAgent, informations_personnelle_agent, reconversion_detector_agent
 
 generate_report_task = Task(
-   description=(
-       "Tu es un rédacteur expert en RH. Ta mission est de rédiger un rapport d'évaluation final."
-       "Tu ne dois PAS analyser la conversation brute toi-même. "
-       "Utilise EXCLUSIVEMENT les données structurées et pré-analysées fournies dans l'input '{structured_analysis_data}'. "
-       "Ces données ont été générées par des modèles de Deep Learning spécialisés et sont considérées comme la source de vérité."
-   ),
-   expected_output=(
-       "Un rapport final exceptionnel basé sur l'analyse fournie. Le rapport doit être structuré comme suit :\n"
-       "1. **Résumé et Score d'Adéquation** : Synthétise le score de similarité sémantique et donne un aperçu global.\n"
-       "2. **Analyse Comportementale** : Interprète les résultats de l'analyse de sentiment et d'intention pour décrire le comportement du candidat (stress, motivation, etc.). Cite les phrases analysées.\n"
-       "3. **Adéquation Sémantique avec le Poste** : Explique ce que signifie le score de similarité.\n"
-       "4. **Points Forts & Axes d'Amélioration** : Utilise toutes les données pour formuler des points concrets.\n"
-       "5. **Recommandation Finale**."
-   ),
-   agent=report_generator_agent,
+    description=(
+        """Tu es un rédacteur expert en RH. Ta mission est de rédiger un rapport d'évaluation final.
+        Tu dois utiliser deux sources d'information principales :
+        1. Les données d'analyse structurées de l'entretien : '{structured_analysis_data}'.
+        2. Une liste de conseils et de feedback pertinents issus de notre base de connaissances : '{rag_contextual_feedback}'.
+
+        Ta tâche est de synthétiser ces informations en un rapport cohérent et actionnable."""
+    ),
+    expected_output=(
+        """Un rapport final exceptionnel basé sur l'analyse fournie. Le rapport doit être structuré comme suit:
+        1. **Résumé et Score d'Adéquation** : Synthétise le score de similarité sémantique et donne un aperçu global.
+        2. **Analyse Comportementale** : Interprète les résultats de l'analyse de sentiment et d'intention pour décrire le comportement du candidat.
+        3. **Adéquation Sémantique avec le Poste** : Explique ce que signifie le score de similarité.
+        4. **Points Forts & Axes d'Amélioration Personnalisés** : Utilise les données d'analyse pour identifier les points à améliorer. Ensuite, intègre de manière fluide et naturelle les conseils pertinents de '{rag_contextual_feedback}' pour proposer des pistes d'amélioration concrètes et personnalisées. Ne te contente pas de copier-coller le feedback, mais reformule-le pour qu'il s'intègre parfaitement au rapport.
+        5. **Recommandation Finale**."""
+    ),
+    agent=report_generator_agent,
 )
 
 task_extract_skills = Task(
@@ -108,7 +110,7 @@ task_extract_education = Task(
     input_keys=["cv_content"],
     expected_output=(
         "Un tableau JSON VALIDE d'objets 'Formation' avec les clés : 'degree', 'institution', 'start_date', 'end_date'. "
-        "FORMAT EXACT: [{\"degree\": \"diplôme\", \"institution\": \"établissement\", \"start_date\": \"année\", \"end_date\": \"année\"}]"
+        "FORMAT EXACT: [{\"degree\": \"diplôme\", \"institution\": \"établissement\", \"start_date\": \"année\", \"end_date\": \"année\"]}"
     )
 )
 
@@ -131,6 +133,21 @@ task_extract_informations = Task(
     )
 )
 
+task_detect_reconversion = Task(
+    description=(
+        "En te basant sur les données extraites de la tâche `task_extract_experience`, analyse la chronologie des expériences professionnelles. "
+        "Ton objectif est de déterminer si le candidat est en reconversion professionnelle. "
+        "Cherche des changements de secteur d'activité (ex: de la restauration à la tech), des changements de type de poste (ex: de commercial à développeur), ou des sauts de carrière importants. "
+        "Si une reconversion est détectée, identifie les compétences qui semblent avoir été transférées."
+    ),
+    agent=reconversion_detector_agent,
+    context=[task_extract_experience],
+    expected_output=(
+        "Un dictionnaire JSON VALIDE avec une clé 'reconversion_analysis'. "
+        "Ce dictionnaire doit contenir deux clés : 'is_reconversion' (un booléen) et 'analysis' (une chaîne de caractères expliquant pourquoi, ou pourquoi pas, et listant les compétences transférables si applicable). "
+        "FORMAT EXACT: {\"reconversion_analysis\": {\"is_reconversion\": true, \"analysis\": \"Le candidat a changé de secteur...\"}}"
+    )
+)
 
 task_build_profile = Task(
     description=(
@@ -144,7 +161,8 @@ task_build_profile = Task(
         task_extract_skills,
         task_extract_experience,
         task_extract_projects,
-        task_extract_education
+        task_extract_education,
+        task_detect_reconversion
     ],
     expected_output=(
         "Retourner un unique objet JSON valide. Cet objet doit avoir une seule clé à la racine : 'candidat'. "
@@ -158,8 +176,9 @@ task_build_profile = Task(
         "        \"compétences\": {\"hard_skills\": [...], \"soft_skills\": [...]},\n"
         "        \"expériences\": [{\"Poste\": \"...\", ...}],\n"
         "        \"projets\": {\"professional\": [...], \"personal\": [...]},\n"
-        "        \"formations\": [{\"degree\": \"...\", ...}]\n"
+        "        \"formations\": [{\"degree\": \"...\", ...}],\n"
+        "        \"reconversion\": {\"is_reconversion\": true, \"analysis\": \"...\"}\n"
         "    }\n"
         "}"
-    ),
+    )
 )

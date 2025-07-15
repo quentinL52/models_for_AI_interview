@@ -44,7 +44,7 @@ class InterviewProcessor:
     )
 
     def _load_prompt_template(self) -> str:
-        return read_system_prompt('prompts/rag_prompt.txt')
+        return read_system_prompt('prompts/rag_prompt_old.txt')
 
     def _chatbot_node(self, state: State) -> dict:
         if state["messages"] and isinstance(state["messages"][-1], ToolMessage):
@@ -52,10 +52,18 @@ class InterviewProcessor:
             return {"messages": [AIMessage(content=tool_message.content)]}
         messages = state["messages"]
         formatted_cv_str = format_cv(self.cv_data)
+
+        mission = self.job_offer.get('mission', 'Non spécifiée')
+        profil_recherche = self.job_offer.get('profil_recherche', 'Non spécifié')
+        competences = self.job_offer.get('competences', 'Non spécifiées')
+        pole = self.job_offer.get('pole', 'Non spécifié')
         system_prompt = self.system_prompt_template.format(
             entreprise=self.job_offer.get('entreprise', 'notre entreprise'),
             poste=self.job_offer.get('poste', 'ce poste'),
-            description=self.job_offer.get('description', 'la description du poste'),
+            mission=mission,
+            profil_recherche=profil_recherche,
+            competences=competences,
+            pole=pole,
             cv=formatted_cv_str
         )
         llm_messages = [SystemMessage(content=system_prompt)] + messages

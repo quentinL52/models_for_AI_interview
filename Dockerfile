@@ -23,10 +23,9 @@ COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/pytho
 COPY --from=builder /usr/local/bin /usr/local/bin
 
 COPY . .
+COPY knowledge_base ./knowledge_base
 
-RUN mkdir uploads
-
-RUN chown -R app:app uploads
+RUN chown -R app:app /app
 
 USER app
 
